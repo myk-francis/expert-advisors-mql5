@@ -7,6 +7,7 @@
 #property link      "https://myk-francis.github.io/michael-portfolio/"
 #property version   "1.00"
 #include <Trade/Trade.mqh>
+#include <GraphicalPanel.mqh>
 
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
@@ -42,6 +43,8 @@ struct RANGE_STRUCT
 RANGE_STRUCT range;
 MqlTick prevTick, lastTick;
 CTrade trade;
+CGraphicalPanel panel;
+
 
 
 //+------------------------------------------------------------------+
@@ -107,6 +110,12 @@ int OnInit()
      {
       CalculateRange();
      }
+     
+   //DrawObjects
+   DrawObjects();
+   
+   //create panel
+   panel.OnInit();
 
    return(INIT_SUCCEEDED);
   }
