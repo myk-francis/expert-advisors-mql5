@@ -328,9 +328,16 @@ void CheckBreakouts()
          //calculate stop loss and take profit
          double sl = stopLoss == 0 ? 0 : NormalizeDouble(lastTick.bid - ((range.high - range.low) * stopLoss * 0.01), _Digits);
          double tp = takeProfit == 0 ? 0 : NormalizeDouble(lastTick.bid + ((range.high - range.low) * takeProfit * 0.01), _Digits);
+         
+         //calculate lots
+         double lots;
+         if(!CalculateLots(lastTick.bid - sl, lots))
+           {
+            return;
+           }
 
          //open buy position
-         trade.PositionOpen(_Symbol, ORDER_TYPE_BUY, lotSize, lastTick.ask, sl, tp, "Time range EA");
+         trade.PositionOpen(_Symbol, ORDER_TYPE_BUY, lots, lastTick.ask, sl, tp, "Time range EA");
         }
 
       //check for low breakout
@@ -341,9 +348,16 @@ void CheckBreakouts()
          //calculate stop loss and take profit
          double sl = stopLoss == 0 ? 0 : NormalizeDouble(lastTick.ask + ((range.high - range.low) * stopLoss * 0.01), _Digits);
          double tp = takeProfit == 0 ? 0 : NormalizeDouble(lastTick.ask - ((range.high - range.low) * takeProfit * 0.01), _Digits);
+         
+         //calculate lots
+         double lots;
+         if(!CalculateLots(sl - lastTick.ask, lots))
+           {
+            return;
+           }
 
          //open sell position
-         trade.PositionOpen(_Symbol, ORDER_TYPE_SELL, lotSize, lastTick.bid, sl, tp, "Time range EA");
+         trade.PositionOpen(_Symbol, ORDER_TYPE_SELL, lots, lastTick.bid, sl, tp, "Time range EA");
         }
 
      }
