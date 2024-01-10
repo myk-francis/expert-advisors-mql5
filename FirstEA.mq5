@@ -8,6 +8,7 @@
 #property link      "https://myk-francis.github.io/michael-portfolio/"
 #property version   "1.00"
 #include <Trade/Trade.mqh>
+#include <GraphicalPanel.mqh>
 //+------------------------------------------------------------------+
 //| Variables                                                        |
 //+------------------------------------------------------------------+
@@ -15,6 +16,7 @@ input int openHour=10;
 input int closeHour=10;
 bool isTradeOpen = false;
 CTrade trade;
+CGraphicalPanel panel;
 
 
 
@@ -28,6 +30,9 @@ int OnInit()
      {
       Alert("OpenHour and CloseHour must be different!!!");
      }
+     
+   //create panel
+   panel.OnInit();
 
    return(INIT_SUCCEEDED);
   }

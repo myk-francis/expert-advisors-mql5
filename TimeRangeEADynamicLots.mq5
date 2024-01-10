@@ -7,7 +7,7 @@
 #property link      "https://myk-francis.github.io/michael-portfolio/"
 #property version   "1.00"
 #include <Trade/Trade.mqh>
-#include <GraphicalPanel.mqh>
+
 
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
@@ -15,10 +15,19 @@
 input int rangeStart = 600;      //range start time in minutes after midnight
 input int rangeDuration = 120;   //range duration in minutes
 input int rangeClose = 1200;     //range close time in minutes (-1=off)
-input double lotSize = 0.01;     //lot size
+
 input long magicNB = 55555;      //magic number
 input int stopLoss = 150;        //stop loss in % of the range (0=off)
 input int takeProfit = 200;      //take profit in % of the range (0=off)
+enum LOT_MODE_ENUM
+  {
+   LOT_MODE_FIXED,               //fixed lots
+   LOT_MODE_MONEY,               //lots based on money
+   LOT_MODE_PCT_ACCOUNT          //lots based on % of account
+  };
+  
+input LOT_MODE_ENUM InpLotMode = LOT_MODE_FIXED;
+input double lotSize = 0.01;     //lot size LOTS / MONEY / PERCENT OF ACCOUT
 
 
 
@@ -43,7 +52,8 @@ struct RANGE_STRUCT
 RANGE_STRUCT range;
 MqlTick prevTick, lastTick;
 CTrade trade;
-CGraphicalPanel panel;
+
+
 
 
 //+------------------------------------------------------------------+
@@ -51,6 +61,7 @@ CGraphicalPanel panel;
 //+------------------------------------------------------------------+
 int OnInit()
   {
+
 //check user input
    if(rangeStart < 0 || rangeStart >= 1440)
      {
@@ -76,9 +87,27 @@ int OnInit()
       return INIT_PARAMETERS_INCORRECT;
      }
 
-   if(lotSize <= 0 || lotSize > 1)
+   if(InpLotMode == LOT_MODE_FIXED && (lotSize <= 0 || lotSize > 10))
      {
-      Alert("lotSize <= 0 || lotSize > 1");
+      Alert("lotSize <= 0 || lotSize > 10");
+      return INIT_PARAMETERS_INCORRECT;
+     }
+     
+   if(InpLotMode == LOT_MODE_MONEY && (lotSize <= 0 || lotSize > 1000))
+     {
+      Alert("lotSize <= 0 || lotSize > 1000");
+      return INIT_PARAMETERS_INCORRECT;
+     }
+     
+   if(InpLotMode == LOT_MODE_PCT_ACCOUNT && (lotSize <= 0 || lotSize > 5))
+     {
+      Alert("lotSize <= 0 || lotSize > 5");
+      return INIT_PARAMETERS_INCORRECT;
+     }
+     
+   if((InpLotMode == LOT_MODE_MONEY || InpLotMode == LOT_MODE_PCT_ACCOUNT) && stopLoss == 0)
+     {
+      Alert("Selected lot mode needs stop loss");
       return INIT_PARAMETERS_INCORRECT;
      }
 
@@ -99,7 +128,7 @@ int OnInit()
       Alert("Close time and stop loss is off");
       return INIT_PARAMETERS_INCORRECT;
      }
-
+     
 //set magic number
    trade.SetExpertMagicNumber(magicNB);
 
@@ -108,12 +137,10 @@ int OnInit()
      {
       CalculateRange();
      }
-
-//DrawObjects
+     
+   //DrawObjects
    DrawObjects();
-
-//create panel
-   if(!panel.Oninit()){ return INIT_FAILED; }
+   
 
    return(INIT_SUCCEEDED);
   }
@@ -125,7 +152,6 @@ int OnInit()
 void OnDeinit(const int reason)
   {
    ObjectsDeleteAll(NULL, "range");
-   panel.Destroy(reason);
   }
 
 
@@ -180,15 +206,6 @@ void OnTick()
    CheckBreakouts();
 
   }
-  
-//+------------------------------------------------------------------+
-//| Char Event Handler                                               |
-//+------------------------------------------------------------------+
-void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam)
-{
-   panel.PanelChartEvent(id, lparam, dparam, sparam);
-}
-
 
 //calculate a new range
 void CalculateRange()
@@ -251,9 +268,6 @@ void CalculateRange()
 
 //draw objects
    DrawObjects();
-   
-   //Update values on dialog panel
-   panel.Update();
   }
 
 
