@@ -18,7 +18,7 @@
 //| Global variables                                                 |
 //+------------------------------------------------------------------+
 int handle;
-double buffer[];
+
 double upperBuffer[];
 double lowerBuffer[];
 MqlTick currentTick;
@@ -40,14 +40,12 @@ input SL_TP_MODE_ENUM      InpSLTPMode = SL_TP_MODE_PCT;                //sl and
 input int                  InpStopLoss = 200;                           // stop loss in %/points (0=off)
 input int                  InpTakeProfit = 100;                         // take profit in %/points (0=off)
 input bool                 InpCloseSignal = false;                      //close trades opposite signal
+input int                  InpSizeFilter = 0;                           //Input size filter in points (0=off)
 
 input group "===== Donchian Channel ====";
 input int                  InpPeriod = 20;                              //period
 input int                  InpOffset = 0;                               //offset in % of the channel (0 -> 49)
 input color                InpColor = clrBlue;                          //color
-
-input int InpRSIPeriod = 21;                          //rsi period         //++++delete
-input int InpRSILevel = 70;                           //rsi level (upper)  //++++delete
 
 
 //+------------------------------------------------------------------+
@@ -71,6 +69,12 @@ int OnInit()
    if(InpStopLoss < 0)
      {
       Alert("InpStopLoss < 0");
+      return INIT_PARAMETERS_INCORRECT;
+     }
+     
+   if(InpSizeFilter < 0)
+     {
+      Alert("InpSizeFilter < 0");
       return INIT_PARAMETERS_INCORRECT;
      }
      
@@ -101,7 +105,7 @@ int OnInit()
    //set magic number to trade object
    trade.SetExpertMagicNumber(InpMagicNumber);
    
-   //create rsi handle
+   //create indicator handle
    handle = iCustom(_Symbol, PERIOD_CURRENT, INDICATOR_NAME, InpPeriod, InpOffset, InpColor );
    //--- if the handle is not created
    if(handle==INVALID_HANDLE)
@@ -122,6 +126,7 @@ int OnInit()
    ArraySetAsSeries(lowerBuffer,true);
    
    //draw indicator on chart
+   ChartIndicatorDelete(NULL, 0, "Donchian(" + IntegerToString(InpPeriod) +")");
    ChartIndicatorAdd(NULL, 0, handle);
      
      
@@ -173,8 +178,14 @@ void OnTick()
        return;
       }
       
+    //check size filter
+    if(InpSizeFilter > 0 && (upperBuffer[0] - lowerBuffer[0]) < InpSizeFilter * _Point)
+      {
+       return;
+      }
+      
     //check for buy position
-    if(cntBuy == 0 && buffer[1] >= (100 - InpRSILevel) && buffer[0] < (100 - InpRSILevel) && openTimeBuy != iTime(_Symbol, PERIOD_CURRENT,0))
+    if(cntBuy == 0 && currentTick.ask <= lowerBuffer[0] && openTimeBuy != iTime(_Symbol, PERIOD_CURRENT,0))
       {
       openTimeBuy = iTime(_Symbol, PERIOD_CURRENT,0);
       
@@ -186,16 +197,28 @@ void OnTick()
             }
          }
          
-       double sl = InpStopLoss == 0 ? 0 : currentTick.bid - InpStopLoss * _Point;
-       double tp = InpTakeProfit == 0 ? 0 : currentTick.bid + InpTakeProfit * _Point;
+       double sl = 0;
+       double tp = 0;
+       if(InpSLTPMode == SL_TP_MODE_PCT)
+         {
+          sl = InpStopLoss == 0 ? 0 : currentTick.bid - (upperBuffer[0] - lowerBuffer[0]) * InpStopLoss * 0.01;
+          tp = InpTakeProfit == 0 ? 0 : currentTick.bid + (upperBuffer[0] - lowerBuffer[0]) * InpTakeProfit * 0.01;
+         }
+       else
+         {
+          sl = InpStopLoss == 0 ? 0 : currentTick.bid - InpStopLoss * _Point;
+          tp = InpTakeProfit == 0 ? 0 : currentTick.bid + InpTakeProfit * _Point;
+         }
+         
+       
        if(!NormalizePrice(sl)) {return;}
        if(!NormalizePrice(tp)) {return;}
        
-       trade.PositionOpen(_Symbol, ORDER_TYPE_BUY, InpLotSize, currentTick.ask, sl, tp, "RSI EA");
+       trade.PositionOpen(_Symbol, ORDER_TYPE_BUY, InpLotSize, currentTick.ask, sl, tp, "Donchian channel EA");
       }
       
     //check for sell position
-    if(cntSell == 0 && buffer[1] <= InpRSILevel && buffer[0] > InpRSILevel && openTimeSell != iTime(_Symbol, PERIOD_CURRENT,0))
+    if(cntSell == 0 && currentTick.bid >= upperBuffer[0] && openTimeSell != iTime(_Symbol, PERIOD_CURRENT,0))
       {
       openTimeSell = iTime(_Symbol, PERIOD_CURRENT,0);
       
@@ -207,12 +230,23 @@ void OnTick()
             }
          }
          
-       double sl = InpStopLoss == 0 ? 0 : currentTick.ask + InpStopLoss * _Point;
-       double tp = InpTakeProfit == 0 ? 0 : currentTick.ask - InpTakeProfit * _Point;
+       double sl = 0;
+       double tp = 0;
+       if(InpSLTPMode == SL_TP_MODE_PCT)
+         {
+          sl = InpStopLoss == 0 ? 0 : currentTick.ask + (upperBuffer[0] - lowerBuffer[0]) * InpStopLoss * 0.01;
+          tp = InpTakeProfit == 0 ? 0 : currentTick.ask - (upperBuffer[0] - lowerBuffer[0]) * InpTakeProfit * 0.01;
+         }
+       else
+         {
+          sl = InpStopLoss == 0 ? 0 : currentTick.ask + InpStopLoss * _Point;
+          tp = InpTakeProfit == 0 ? 0 : currentTick.ask - InpTakeProfit * _Point;
+         }
+       
        if(!NormalizePrice(sl)) {return;}
        if(!NormalizePrice(tp)) {return;}
        
-       trade.PositionOpen(_Symbol, ORDER_TYPE_SELL, InpLotSize, currentTick.bid, sl, tp, "RSI EA");
+       trade.PositionOpen(_Symbol, ORDER_TYPE_SELL, InpLotSize, currentTick.bid, sl, tp, "Donchian channel EA");
       }
   }
   
