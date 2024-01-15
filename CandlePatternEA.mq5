@@ -136,7 +136,7 @@ void OnTick()
       }
       
    //check for new buy position
-   if(cntBuy==0)
+   if(cntBuy==0 && CheckAllConditions(true))
      {
          
        double sl = InpStopLoss == 0 ? 0 : currentTick.bid - InpStopLoss * _Point;
@@ -149,7 +149,7 @@ void OnTick()
      }
      
    //check for new sell position
-   if(cntBuy==0)
+   if(cntBuy==0 && CheckAllConditions(false))
      {
          
        double sl = InpStopLoss == 0 ? 0 : currentTick.ask + InpStopLoss * _Point;
@@ -260,8 +260,20 @@ bool CheckOneCondition(bool buy_sell, int idx){
       default:
         return false;
      }
-   
-   return true;
+     
+   //compare values
+   if(buy_sell || (!buy_sell && con[idx].modeA >= 4))
+     {
+      if(con[idx].comp == GREATER && a > b) {return true;}
+      if(con[idx].comp == LESS && a < b) {return true;}
+     }
+   else
+     {
+      if(con[idx].comp == GREATER && a < b) {return true;}
+      if(con[idx].comp == LESS && a > b) {return true;}
+     }
+    
+   return false;
 }
 
 //check for inputs
