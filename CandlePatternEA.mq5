@@ -63,10 +63,21 @@ CTrade trade;                                                        //object to
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
 //+------------------------------------------------------------------+
-static input long       InpMagicNumber = 55555;                         //magic number
-static input double     InpLots = 0.01;                                 //lots
-input int               InpStopLoss = 200;                              //stop loss in points (0=off)
-input int               InpTakeProfit = 0;                              //take profit in points (0=off)
+input group "==== General ===="
+static input long       InpMagicNumber = 55555;                      //magic number
+static input double     InpLots        = 0.01;                       //lots
+input int               InpStopLoss    = 200;                        //stop loss in points (0=off)
+input int               InpTakeProfit  = 0;                          //take profit in points (0=off)
+
+input group "==== Condition 1 ===="
+input bool InpCon1Active         = false;                            //active
+input MODE InpCon1ModeA          = OPEN;                             //mode A
+input INDEX InpCon1IndexA        = INDEX_1;                          //index A
+input COMPARE InpCon1Compare     = GREATER;                          //compare
+input MODE InpCon1ModeB          = CLOSE;                            //mode B
+input INDEX InpCon1IndexB        = INDEX_1;                          //index B
+input double InpCon1Value        = 0;                                //value
+
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
