@@ -70,13 +70,22 @@ input int               InpStopLoss    = 200;                        //stop loss
 input int               InpTakeProfit  = 0;                          //take profit in points (0=off)
 
 input group "==== Condition 1 ===="
-input bool InpCon1Active         = false;                            //active
+input bool InpCon1Active         = true;                            //active
 input MODE InpCon1ModeA          = OPEN;                             //mode A
 input INDEX InpCon1IndexA        = INDEX_1;                          //index A
 input COMPARE InpCon1Compare     = GREATER;                          //compare
 input MODE InpCon1ModeB          = CLOSE;                            //mode B
 input INDEX InpCon1IndexB        = INDEX_1;                          //index B
 input double InpCon1Value        = 0;                                //value
+
+input group "==== Condition 2 ===="
+input bool InpCon2Active         = false;                            //active
+input MODE InpCon2ModeA          = OPEN;                             //mode A
+input INDEX InpCon2IndexA        = INDEX_1;                          //index A
+input COMPARE InpCon2Compare     = GREATER;                          //compare
+input MODE InpCon2ModeB          = CLOSE;                            //mode B
+input INDEX InpCon2IndexB        = INDEX_1;                          //index B
+input double InpCon2Value        = 0;                                //value
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
