@@ -97,6 +97,10 @@ int OnInit()
    
    //check inputs
    if(!CheckInputs()){return INIT_PARAMETERS_INCORRECT;}
+   
+   //set magic number to trade object
+   trade.SetExpertMagicNumber(InpMagicNumber);
+   
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
