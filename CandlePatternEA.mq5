@@ -56,7 +56,7 @@ struct CONDITION{
    CONDITION(): active(false){};
 };
 
-CONDITION conp[NR_CONDITIONS];                                       //condition array
+CONDITION con[NR_CONDITIONS];                                       //condition array
 MqlTick prevTick, lastTick;                                          //current tick of the symbol
 CTrade trade;                                                        //object to open/close positons
 
@@ -111,4 +111,27 @@ void OnTick()
 
    
   }
+  
+//+------------------------------------------------------------------+
+//| Custom Functions                                                 |
+//+------------------------------------------------------------------+
+void SetInputs(){
+   //condition 1
+   con[0].active        = InpCon1Active;
+   con[0].modeA         = InpCon1ModeA;
+   con[0].idxA          = InpCon1IndexA;
+   con[0].comp          = InpCon1Compare;
+   con[0].modeB         = InpCon1ModeB;
+   con[0].idxB          = InpCon1IndexB;
+   con[0].value         = InpCon1Value;
+   
+   //condition 2
+   con[1].active        = InpCon2Active;
+   con[1].modeA         = InpCon2ModeA;
+   con[1].idxA          = InpCon2IndexA;
+   con[1].comp          = InpCon2Compare;
+   con[1].modeB         = InpCon2ModeB;
+   con[1].idxB          = InpCon2IndexB;
+   con[1].value         = InpCon2Value;
+}
 //+------------------------------------------------------------------+
