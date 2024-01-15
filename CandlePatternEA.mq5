@@ -238,6 +238,28 @@ bool CheckOneCondition(bool buy_sell, int idx){
       default:
         return false;
      }
+     
+   switch(con[idx].modeB)
+     {
+      case OPEN: b = rates[con[idx].idxB].open;
+        break;
+      case HIGH: b = buy_sell ? rates[con[idx].idxB].high : rates[con[idx].idxB].low;
+        break;
+      case LOW: b = buy_sell ? rates[con[idx].idxB].low : rates[con[idx].idxB].high;
+        break;
+      case CLOSE: b = rates[con[idx].idxB].close;
+        break;
+      case RANGE: b = (rates[con[idx].idxB].high - rates[con[idx].idxB].low) / _Point;
+        break;
+      case BODY: b = MathAbs(rates[con[idx].idxB].open - rates[con[idx].idxB].close) / _Point;
+        break;
+      case RATIO: b = MathAbs(rates[con[idx].idxB].open - rates[con[idx].idxB].close) / (rates[con[idx].idxB].high - rates[con[idx].idxB].low);
+        break;
+      case VALUE: b = con[idx].value;
+        break;
+      default:
+        return false;
+     }
    
    return true;
 }
