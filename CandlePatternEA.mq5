@@ -57,7 +57,7 @@ struct CONDITION{
 };
 
 CONDITION con[NR_CONDITIONS];                                       //condition array
-MqlTick prevTick, lastTick;                                          //current tick of the symbol
+MqlTick currentTick;                                          //current tick of the symbol
 CTrade trade;                                                        //object to open/close positons
 
 //+------------------------------------------------------------------+
@@ -67,7 +67,7 @@ input group "==== General ===="
 static input long       InpMagicNumber = 55555;                      //magic number
 static input double     InpLots        = 0.01;                       //lots
 input int               InpStopLoss    = 200;                        //stop loss in points (0=off)
-input int               InpTakeProfit  = 0;                          //take profit in points (0=off)
+input int               InpTakeProfit  = 300;                          //take profit in points (0=off)
 
 input group "==== Condition 1 ===="
 input bool InpCon1Active         = true;                            //active
@@ -116,7 +116,50 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
   {
-
+  
+   //check if current tick is a new bar open tick
+   if(!IsNewBar()){return;}
+   
+   //get current tick
+   if(!SymbolInfoTick(_Symbol, currentTick)) 
+     {
+      Print("Failed to get current tick");
+      return;
+     }
+     
+   //count open positions
+    int cntBuy, cntSell;
+    if(!CountOpenPositions(cntBuy, cntSell))
+      {
+       Print("Failed to count open positons");
+       return;
+      }
+      
+   //check for new buy position
+   if(cntBuy==0)
+     {
+         
+       double sl = InpStopLoss == 0 ? 0 : currentTick.bid - InpStopLoss * _Point;
+       double tp = InpTakeProfit == 0 ? 0 : currentTick.bid + InpTakeProfit * _Point;
+       
+       if(!NormalizePrice(sl)) {return;}
+       if(!NormalizePrice(tp)) {return;}
+       
+       trade.PositionOpen(_Symbol, ORDER_TYPE_BUY, InpLots, currentTick.ask, sl, tp, "CandlePatternEA");
+     }
+     
+   //check for new sell position
+   if(cntBuy==0)
+     {
+         
+       double sl = InpStopLoss == 0 ? 0 : currentTick.ask + InpStopLoss * _Point;
+       double tp = InpTakeProfit == 0 ? 0 : currentTick.ask - InpTakeProfit * _Point;
+       
+       if(!NormalizePrice(sl)) {return;}
+       if(!NormalizePrice(tp)) {return;}
+       
+       trade.PositionOpen(_Symbol, ORDER_TYPE_SELL, InpLots, currentTick.bid, sl, tp, "CandlePatternEA");
+     }
    
   }
   
@@ -202,6 +245,60 @@ bool NormalizePrice(double &price)
    
    return true;
 }
+
+//count open positions
+bool CountOpenPositions(int &cntBuy, int &cntSell)
+  {
+   cntBuy = 0;
+   cntSell = 0;
+   int total = PositionsTotal();
+
+   for(int i=total-1; i<0; i--)
+     {
+      ulong ticket = PositionGetTicket(i);
+      long magic;
+
+      if(ticket <= 0)
+        {
+         Print("Failed to get open ticket!");
+         return false;
+        }
+
+      if(!PositionSelectByTicket(ticket))
+        {
+         Print("Failed to select position!");
+         return false;
+        }
+
+      if(!PositionGetInteger(POSITION_MAGIC, magic))
+        {
+         Print("Failed to get position magic number!");
+         return false;
+        }
+
+      if(magic == InpMagicNumber)
+        {
+         long type;
+
+         if(!PositionGetInteger(POSITION_TYPE, type))
+           {
+            Print("Failed to get position type!");
+            return false;
+           }
+
+         if(type==POSITION_TYPE_BUY)
+           {
+            cntBuy++;
+           }
+         if(type==POSITION_TYPE_SELL)
+           {
+            cntSell++;
+           }
+        }
+     }
+
+   return true;
+  }
 
 //close open positions
 bool ClosePositions(int all_buy_sell)
