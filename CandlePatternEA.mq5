@@ -173,4 +173,100 @@ bool CheckInputs(){
    
    return true;
 }
+
+//check if we have a bar open tick
+bool IsNewBar()
+  {
+   static datetime previousTime = 0;
+   datetime currentTime = iTime(_Symbol, PERIOD_CURRENT, 0);
+   if(previousTime != currentTime)
+     {
+      previousTime = currentTime;
+      return true;
+     }
+
+   return false;
+  }
+
+//normalize price
+bool NormalizePrice(double &price)
+{
+   double tickSize = 0;
+   if(!SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE, tickSize))
+     {
+      Print("Failed to get tick size!");
+      return false;
+     }
+     
+   price = NormalizeDouble(MathRound(price / tickSize) * tickSize, _Digits);
+   
+   return true;
+}
+
+//close open positions
+bool ClosePositions(int all_buy_sell)
+  {
+   int total = PositionsTotal();
+   for(int i=total - 1; i>=0; i--)
+     {
+
+      if(total != PositionsTotal())
+        {
+         total = PositionsTotal();
+         i = total;
+         continue;
+        }
+
+      ulong ticket = PositionGetTicket(i); //select position
+      if(ticket <= 0)
+        {
+         Print("Failed to get position ticket");
+         return false;
+        }
+
+      if(!PositionSelectByTicket(ticket))
+        {
+         Print("Failed to select position!");
+         return false;
+        }
+
+      long magic_number;
+      if(!PositionGetInteger(POSITION_MAGIC, magic_number))
+        {
+         Print("Failed to get position magic number!");
+         return false;
+        }
+
+      if(magic_number == InpMagicNumber)
+        {
+         long type;
+
+         if(!PositionGetInteger(POSITION_TYPE, type))
+           {
+            Print("Failed to get position type!");
+            return false;
+           }
+
+         if(all_buy_sell == 1 && type==POSITION_TYPE_BUY)
+           {
+            continue;
+           }
+           
+         if(all_buy_sell == 2 && type==POSITION_TYPE_SELL)
+           {
+            continue;
+           }
+           
+         trade.PositionClose(ticket);
+
+         if(trade.ResultRetcode() != TRADE_RETCODE_DONE)
+           {
+            Print("Failed to close position. Result: " + (string)trade.ResultRetcode() + "+" + trade.ResultRetcodeDescription());
+            return false;
+           }
+        }
+     }
+
+   return true;
+  }
 //+------------------------------------------------------------------+
