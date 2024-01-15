@@ -27,7 +27,7 @@ enum MODE {
    RANGE = 4,                                                        //range (points)
    BODY = 5,                                                         //body (points)
    RATIO = 6,                                                        //ratio (body/range)
-   VALUES = 7,                                                       //value
+   VALUE = 7,                                                       //value
 };
 
 enum INDEX {
@@ -186,6 +186,63 @@ void SetInputs(){
    con[1].value         = InpCon2Value;
 }
 
+//check for conditions
+bool CheckAllConditions(bool buy_sell){
+   
+   //check each condition
+   for(int i=0;i<NR_CONDITIONS;i++)
+     {
+      if(!CheckOneCondition(buy_sell, i)){return false;}
+     }
+   
+   return true;
+}
+
+//check one condition
+bool CheckOneCondition(bool buy_sell, int idx){
+   //return true if condition is not active
+   if(!con[idx].active){return true;}
+   
+   //get bar data
+   MqlRates rates[];
+   ArraySetAsSeries(rates, true);
+   int copied = CopyRates(_Symbol,PERIOD_CURRENT,0,4,rates);
+   
+   if(copied!=4){
+      Print("Failed to get bar data. copied ",GetLastError()); 
+      return false;
+   }
+   
+   //set values to a and b
+   double a= 0;
+   double b = 0;
+   
+   switch(con[idx].modeA)
+     {
+      case OPEN: a = rates[con[idx].idxA].open;
+        break;
+      case HIGH: a = buy_sell ? rates[con[idx].idxA].high : rates[con[idx].idxA].low;
+        break;
+      case LOW: a = buy_sell ? rates[con[idx].idxA].low : rates[con[idx].idxA].high;
+        break;
+      case CLOSE: a = rates[con[idx].idxA].close;
+        break;
+      case RANGE: a = (rates[con[idx].idxA].high - rates[con[idx].idxA].low) / _Point;
+        break;
+      case BODY: a = MathAbs(rates[con[idx].idxA].open - rates[con[idx].idxA].close) / _Point;
+        break;
+      case RATIO: a = MathAbs(rates[con[idx].idxA].open - rates[con[idx].idxA].close) / (rates[con[idx].idxA].high - rates[con[idx].idxA].low);
+        break;
+      case VALUE: a = con[idx].value;
+        break;
+      default:
+        return false;
+     }
+   
+   return true;
+}
+
+//check for inputs
 bool CheckInputs(){
    
    if(InpMagicNumber <= 0)
@@ -252,6 +309,12 @@ bool CountOpenPositions(int &cntBuy, int &cntSell)
    cntBuy = 0;
    cntSell = 0;
    int total = PositionsTotal();
+   
+   if(total == 0)
+      {
+       Print("No open positions");
+       return true;
+      }
 
    for(int i=total-1; i<0; i--)
      {
