@@ -92,7 +92,11 @@ input double InpCon2Value        = 0;                                //value
 //+------------------------------------------------------------------+
 int OnInit()
   {
-
+   //set inputs 
+   SetInputs();
+   
+   //check inputs
+   if(!CheckInputs()){return INIT_PARAMETERS_INCORRECT;}
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
@@ -133,5 +137,36 @@ void SetInputs(){
    con[1].modeB         = InpCon2ModeB;
    con[1].idxB          = InpCon2IndexB;
    con[1].value         = InpCon2Value;
+}
+
+bool CheckInputs(){
+   
+   if(InpMagicNumber <= 0)
+     {
+      Alert("Wrong input: MagicNumber <= 0");
+      return false;
+     }
+     
+   if(InpLots <= 0)
+     {
+      Alert("Wrong input: Lots <= 0");
+      return false;
+     }
+     
+   if(InpStopLoss < 0)
+     {
+      Alert("Wrong input: InpStopLoss < 0");
+      return false;
+     }
+     
+   if(InpTakeProfit < 0)
+     {
+      Alert("Wrong input: InpTakeProfit < 0");
+      return false;
+     }
+     
+   //check conditions +++
+   
+   return true;
 }
 //+------------------------------------------------------------------+
