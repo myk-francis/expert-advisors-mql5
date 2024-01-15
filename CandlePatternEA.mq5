@@ -45,21 +45,28 @@ enum COMPARE
 
 
 struct CONDITION{
-   bool active;   //condition active?
-   MODE modeA;    //mode A
-   INDEX idxA;    //index A
-   COMPARE comp;  //compare 
-   MODE modeB;    //mode B
-   INDEX idxB;    //index B
-   double value;   //value
+   bool active;                                                      //condition active?
+   MODE modeA;                                                       //mode A
+   INDEX idxA;                                                       //index A
+   COMPARE comp;                                                     //compare 
+   MODE modeB;                                                       //mode B
+   INDEX idxB;                                                       //index B
+   double value;                                                     //value
    
    CONDITION(): active(false){};
 };
 
+CONDITION conp[NR_CONDITIONS];                                       //condition array
+MqlTick prevTick, lastTick;                                          //current tick of the symbol
+CTrade trade;                                                        //object to open/close positons
+
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
 //+------------------------------------------------------------------+
-
+static input long       InpMagicNumber = 55555;                         //magic number
+static input double     InpLots = 0.01;                                 //lots
+input int               InpStopLoss = 200;                              //stop loss in points (0=off)
+input int               InpTakeProfit = 0;                              //take profit in points (0=off)
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
