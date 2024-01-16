@@ -15,6 +15,7 @@
 //| Includes                                                         |
 //+------------------------------------------------------------------+
 #include <Trade/Trade.mqh>
+#include <CandlePatternGUI.mqh>
 
 //+------------------------------------------------------------------+
 //| Global Variables                                                 |
@@ -56,9 +57,10 @@ struct CONDITION{
    CONDITION(): active(false){};
 };
 
-CONDITION con[NR_CONDITIONS];                                       //condition array
-MqlTick currentTick;                                          //current tick of the symbol
+CONDITION con[NR_CONDITIONS];                                        //condition array
+MqlTick currentTick;                                                 //current tick of the symbol
 CTrade trade;                                                        //object to open/close positons
+CGraphicalPanel panel;                                               //object to create panel
 
 //+------------------------------------------------------------------+
 //| Inputs                                                           |
@@ -101,6 +103,12 @@ int OnInit()
    //set magic number to trade object
    trade.SetExpertMagicNumber(InpMagicNumber);
    
+   //create panel
+   if(!panel.Oninit())
+     {
+      return INIT_FAILED;
+     }
+   
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
@@ -108,7 +116,8 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
-
+   //destroy panel
+   panel.Destroy(reason);
    
   }
 //+------------------------------------------------------------------+
@@ -163,6 +172,11 @@ void OnTick()
    
   }
   
+  
+void OnChartEvent(const int id,const long& lparam,const double& dparam,const string& sparam)
+  {
+   panel.ChartEvent(id,lparam,dparam,sparam);
+  }
 //+------------------------------------------------------------------+
 //| Custom Functions                                                 |
 //+------------------------------------------------------------------+
