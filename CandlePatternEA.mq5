@@ -170,6 +170,8 @@ void OnTick()
        trade.PositionOpen(_Symbol, ORDER_TYPE_SELL, InpLots, currentTick.bid, sl, tp, "CandlePatternEA");
      }
    
+   //update panel
+   panel.Update();
   }
   
   
